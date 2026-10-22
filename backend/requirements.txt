@@ -1,0 +1,7 @@
+fastapi[standard]
+sqlmodel
+pydantic-settings
+holidays
+langgraph
+langchain-core
+pytest
