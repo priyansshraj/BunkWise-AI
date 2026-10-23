@@ -133,6 +133,10 @@ __pypackages__/
 celerybeat-schedule*
 celerybeat.pid
 
+#databases
+*.db
+*.sqlite3
+
 # Redis
 *.rdb
 *.aof
@@ -218,3 +222,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Flutter & Android
+mobile/build/
+mobile/.dart_tool/
+mobile/.flutter-plugins*

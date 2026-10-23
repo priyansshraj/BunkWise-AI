@@ -1,10 +1,11 @@
-from contextlib import asynccontextmanager
+﻿from contextlib import asynccontextmanager
 from datetime import date
 import holidays
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.db import create_db_and_tables
+from app.routers import attendance, calendar
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -14,7 +15,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.app_name,
     description="Agentic AI Attendance Tracker & Smart Bunk Planner API",
-    version="0.1.0",
+    version="0.2.0",
     lifespan=lifespan,
 )
 
@@ -25,6 +26,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(attendance.router)
+app.include_router(calendar.router)
 
 @app.get("/health", tags=["System"])
 async def health_check(state_code: str = settings.default_state_code):
