@@ -96,3 +96,46 @@ def get_student_timetable(student_id: int, session: Session = Depends(get_sessio
         .where(Subject.student_id == student_id)
     )
     return list(session.exec(statement).all())
+
+@router.get("/students/{student_id}/bunk-plan")
+def get_student_bunk_plan(student_id: int, session: Session = Depends(get_session)):
+    from datetime import date as dt_date
+    from app.models.holiday import CustomHoliday
+    from app.services.bunk_calculator import calculate_subject_bunk_plan
+
+    student = session.get(StudentProfile, student_id)
+    if not student:
+        raise HTTPException(status_code=404, detail="Student profile not found")
+    if not student.expected_exam_date:
+        raise HTTPException(
+            status_code=400,
+            detail="expected_exam_date is not set on StudentProfile. Update it first.",
+        )
+
+    subjects = session.exec(select(Subject).where(Subject.student_id == student_id)).all()
+    slots = session.exec(
+        select(TimetableSlot)
+        .join(Subject, TimetableSlot.subject_id == Subject.id)
+        .where(Subject.student_id == student_id)
+    ).all()
+    custom_holidays = session.exec(
+        select(CustomHoliday).where(CustomHoliday.student_id == student_id)
+    ).all()
+
+    reports = [
+        calculate_subject_bunk_plan(
+            subject=sub,
+            slots=slots,
+            exam_date=student.expected_exam_date,
+            state_code=student.state_code,
+            is_saturday_working=student.is_saturday_working,
+            custom_holidays=custom_holidays,
+        )
+        for sub in subjects
+    ]
+    return {
+        "student_id": student.id,
+        "student_name": student.name,
+        "expected_exam_date": str(student.expected_exam_date),
+        "subjects_report": reports,
+    }
